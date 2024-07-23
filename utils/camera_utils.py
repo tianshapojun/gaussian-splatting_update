@@ -43,13 +43,31 @@ def loadCam(args, id, cam_info, resolution_scale):
     gt_image = resized_image_rgb[:3, ...]
     loaded_mask = None
 
-    if resized_image_rgb.shape[1] == 4:
+    if resized_image_rgb.shape[0] == 4:
         loaded_mask = resized_image_rgb[3:4, ...]
+     
+    #add, yyf   
+    try:
+        cx = cam_info.cx
+        cy = cam_info.cy
+        obj_rt = cam_info.obj_rt
+    except: 
+        cx = cam_info.width/2
+        cy = cam_info.height/2
+        obj_rt = []
+
+    # add, yyf, 0703 
+    try: 
+        depth = cam_info.depth
+    except: 
+        depth = np.zeros((cam_info.height,cam_info.width,2))
 
     return Camera(colmap_id=cam_info.uid, R=cam_info.R, T=cam_info.T, 
                   FoVx=cam_info.FovX, FoVy=cam_info.FovY, 
-                  image=gt_image, gt_alpha_mask=loaded_mask,
-                  image_name=cam_info.image_name, uid=id, data_device=args.data_device)
+                  image=gt_image, gt_alpha_mask=loaded_mask,depth = depth,
+                  image_name=cam_info.image_name, uid=id, 
+                  cx = cx, cy = cy, obj_rt = obj_rt,
+                  data_device=args.data_device)
 
 def cameraList_from_camInfos(cam_infos, resolution_scale, args):
     camera_list = []
@@ -80,3 +98,4 @@ def camera_to_JSON(id, camera : Camera):
         'fx' : fov2focal(camera.FovX, camera.width)
     }
     return camera_entry
+
